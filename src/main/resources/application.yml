@@ -1,0 +1,18 @@
+spring:
+  application:
+        name=skillswap
+  datasource:
+    url: jdbc:postgresql://db.xvymbqmkkuljfndhavri.supabase.co:5432/postgres?user=postgres&password=${DB_PASSWORD}
+    username: postgres
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration-ms: 86400000
