@@ -29,5 +29,7 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 doc/performance/**
+k6_test_files/**
+src/test/resources/*.yml
 ### VS Code ###
 .vscode/

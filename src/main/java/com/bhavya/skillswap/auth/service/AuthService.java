@@ -6,6 +6,7 @@ import com.bhavya.skillswap.auth.dto.RegisterRequest;
 import com.bhavya.skillswap.common.exception.EmailAlreadyRegisteredException;
 import com.bhavya.skillswap.common.exception.InvalidCredentialsException;
 import com.bhavya.skillswap.common.util.JwtUtil;
+import com.bhavya.skillswap.ledger.service.LedgerService;
 import com.bhavya.skillswap.user.entity.User;
 import com.bhavya.skillswap.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -13,12 +14,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final LedgerService ledgerService;
 
     @Transactional
     public AuthResponse register(RegisterRequest req) {
@@ -28,7 +32,7 @@ public class AuthService {
 
         User user = new User(req.email(), passwordEncoder.encode(req.password()), req.displayName());
         User savedUser = userRepository.save(user);
-
+        ledgerService.grantSignupBonus(savedUser.getId(), new BigDecimal("100.00"));
         String token = jwtUtil.generateToken(savedUser.getId(), savedUser.getEmail());
 
         return new AuthResponse(token, savedUser.getId(), savedUser.getDisplayName());

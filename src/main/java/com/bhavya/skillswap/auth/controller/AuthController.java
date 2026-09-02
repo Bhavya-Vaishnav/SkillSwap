@@ -4,18 +4,15 @@ import com.bhavya.skillswap.auth.dto.AuthResponse;
 import com.bhavya.skillswap.auth.dto.LoginRequest;
 import com.bhavya.skillswap.auth.dto.RegisterRequest;
 import com.bhavya.skillswap.auth.service.AuthService;
-import com.bhavya.skillswap.common.exception.EmailAlreadyRegisteredException;
-import com.bhavya.skillswap.common.util.JwtUtil;
-import com.bhavya.skillswap.user.repository.UserRepository;
+import com.bhavya.skillswap.ledger.service.LedgerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor

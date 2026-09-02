@@ -6,6 +6,7 @@ import com.bhavya.skillswap.auth.dto.RegisterRequest;
 import com.bhavya.skillswap.common.exception.EmailAlreadyRegisteredException;
 import com.bhavya.skillswap.common.exception.InvalidCredentialsException;
 import com.bhavya.skillswap.common.util.JwtUtil;
+import com.bhavya.skillswap.ledger.service.LedgerService;
 import com.bhavya.skillswap.user.entity.User;
 import com.bhavya.skillswap.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -37,6 +39,8 @@ class AuthServiceTest {
 
     @InjectMocks
     private AuthService authService;
+    @Mock
+    private LedgerService ledgerService;
 
     private RegisterRequest registerRequest;
     private LoginRequest loginRequest;
@@ -52,8 +56,13 @@ class AuthServiceTest {
         when(userRepository.existsByEmail(registerRequest.email())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("hashed-password");
 
-        User savedUser = new User(registerRequest.email(), "hashed-password", registerRequest.displayName());
+        User savedUser = new User(
+                registerRequest.email(),
+                "hashed-password",
+                registerRequest.displayName()
+        );
         savedUser.setId(UUID.randomUUID());
+
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
         when(jwtUtil.generateToken(any(), anyString())).thenReturn("fake-jwt-token");
 
@@ -61,7 +70,13 @@ class AuthServiceTest {
 
         assertThat(response.token()).isEqualTo("fake-jwt-token");
         assertThat(response.userId()).isEqualTo(savedUser.getId());
+
         verify(userRepository).save(any(User.class));
+
+        verify(ledgerService).grantSignupBonus(
+                eq(savedUser.getId()),
+                eq(new BigDecimal("100.00"))
+        );
     }
 
     @Test
