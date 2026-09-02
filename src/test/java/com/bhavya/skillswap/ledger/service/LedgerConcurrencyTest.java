@@ -33,9 +33,9 @@ class LedgerConcurrencyTest {
     void setUp() {
         var encoder = new BCryptPasswordEncoder();
 
-        User sender = new User("sender@test.com", encoder.encode("pw"), "Sender");
-        User receiverA = new User("recva@test.com", encoder.encode("pw"), "ReceiverA");
-        User receiverB = new User("recvb@test.com", encoder.encode("pw"), "ReceiverB");
+        User sender = new User("sender1@test.com", encoder.encode("pw"), "Sender");
+        User receiverA = new User("recva1@test.com", encoder.encode("pw"), "ReceiverA");
+        User receiverB = new User("recvb1@test.com", encoder.encode("pw"), "ReceiverB");
 
         senderId = userRepository.save(sender).getId();
         receiverAId = userRepository.save(receiverA).getId();
