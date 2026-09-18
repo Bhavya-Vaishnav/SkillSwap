@@ -30,6 +30,6 @@ build/
 !**/src/test/**/build/
 doc/performance/**
 k6_test_files/**
-src/test/resources/*.yml
+src/test/resources/application.yml
 ### VS Code ###
 .vscode/
