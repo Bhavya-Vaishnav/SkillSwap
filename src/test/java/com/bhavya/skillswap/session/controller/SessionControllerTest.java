@@ -1,6 +1,7 @@
 package com.bhavya.skillswap.session.controller;
 
 import com.bhavya.skillswap.common.util.JwtUtil;
+import com.bhavya.skillswap.session.dto.AcceptSessionRequest;
 import com.bhavya.skillswap.session.dto.SessionRequest;
 import com.bhavya.skillswap.session.dto.SessionResponse;
 import com.bhavya.skillswap.session.entity.SessionStatus;
@@ -39,7 +40,7 @@ class SessionControllerTest {
     void requestSession_valid_returns201() throws Exception {
         var req = new SessionRequest(UUID.randomUUID(), UUID.randomUUID(), new BigDecimal("10.00"));
         var res = new SessionResponse(UUID.randomUUID(), UUID.randomUUID(), req.providerId(),
-                req.skillId(), req.creditAmount(), SessionStatus.REQUESTED);
+                req.skillId(), req.creditAmount(), SessionStatus.REQUESTED, null);
 
         when(sessionService.requestSession(any(), any())).thenReturn(res);
 
@@ -54,20 +55,26 @@ class SessionControllerTest {
     void acceptSession_returns200() throws Exception {
         UUID sessionId = UUID.randomUUID();
         var res = new SessionResponse(sessionId, UUID.randomUUID(), UUID.randomUUID(),
-                UUID.randomUUID(), new BigDecimal("10.00"), SessionStatus.ACCEPTED);
+                UUID.randomUUID(), new BigDecimal("10.00"), SessionStatus.ACCEPTED,
+                "https://meet.google.com/abc-defg-hij");
 
-        when(sessionService.acceptSession(any(), any())).thenReturn(res);
+        when(sessionService.acceptSession(any(), any(), any())).thenReturn(res);
 
-        mockMvc.perform(post("/api/sessions/" + sessionId + "/accept"))
+        var req = new AcceptSessionRequest("https://meet.google.com/abc-defg-hij");
+
+        mockMvc.perform(post("/api/sessions/" + sessionId + "/accept")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("ACCEPTED"));
+                .andExpect(jsonPath("$.status").value("ACCEPTED"))
+                .andExpect(jsonPath("$.meetingLink").value("https://meet.google.com/abc-defg-hij"));
     }
 
     @Test
     void completeSession_returns200() throws Exception {
         UUID sessionId = UUID.randomUUID();
         var res = new SessionResponse(sessionId, UUID.randomUUID(), UUID.randomUUID(),
-                UUID.randomUUID(), new BigDecimal("10.00"), SessionStatus.COMPLETED);
+                UUID.randomUUID(), new BigDecimal("10.00"), SessionStatus.COMPLETED, "https://meet.google.com/abc-defg-hij");
 
         when(sessionService.completeSession(any(), any())).thenReturn(res);
 

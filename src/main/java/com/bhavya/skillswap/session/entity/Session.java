@@ -45,6 +45,9 @@ public class Session {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
 
+    @Column(name = "meeting_link")
+    private String meetingLink;
+
     public Session(UUID requesterId, UUID providerId, UUID skillId, BigDecimal creditAmount) {
         this.requesterId = requesterId;
         this.providerId = providerId;

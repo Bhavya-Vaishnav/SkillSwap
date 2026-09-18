@@ -1,5 +1,6 @@
 package com.bhavya.skillswap.session.controller;
 
+import com.bhavya.skillswap.session.dto.AcceptSessionRequest;
 import com.bhavya.skillswap.session.dto.SessionRequest;
 import com.bhavya.skillswap.session.dto.SessionResponse;
 import com.bhavya.skillswap.session.service.SessionService;
@@ -27,8 +28,10 @@ public class SessionController {
     }
 
     @PostMapping("/{id}/accept")
-    public ResponseEntity<SessionResponse> accept(@AuthenticationPrincipal UUID userId, @PathVariable UUID id) {
-        return ResponseEntity.ok(sessionService.acceptSession(userId, id));
+    public ResponseEntity<SessionResponse> accept(@AuthenticationPrincipal UUID userId,
+                                                  @PathVariable UUID id,
+                                                  @Valid @RequestBody AcceptSessionRequest req) {
+        return ResponseEntity.ok(sessionService.acceptSession(userId, id, req));
     }
 
     @PostMapping("/{id}/reject")

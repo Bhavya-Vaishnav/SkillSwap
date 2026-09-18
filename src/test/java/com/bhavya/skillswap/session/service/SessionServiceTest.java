@@ -5,6 +5,7 @@ import com.bhavya.skillswap.common.exception.ResourceNotFoundException;
 import com.bhavya.skillswap.common.exception.UnauthorizedActionException;
 import com.bhavya.skillswap.ledger.entity.LedgerEntryType;
 import com.bhavya.skillswap.ledger.service.LedgerService;
+import com.bhavya.skillswap.session.dto.AcceptSessionRequest;
 import com.bhavya.skillswap.session.dto.SessionRequest;
 import com.bhavya.skillswap.session.entity.Session;
 import com.bhavya.skillswap.session.entity.SessionStatus;
@@ -72,9 +73,11 @@ class SessionServiceTest {
         when(sessionRepository.findByIdForUpdate(sessionId)).thenReturn(Optional.of(session));
         when(sessionRepository.save(any())).thenReturn(session);
 
-        var result = sessionService.acceptSession(providerId, sessionId);
+        var req = new AcceptSessionRequest("https://meet.google.com/abc-defg-hij");
+        var result = sessionService.acceptSession(providerId, sessionId, new AcceptSessionRequest("https://meet.google.com/abc-defg-hij"));
 
         assertThat(result.status()).isEqualTo(SessionStatus.ACCEPTED);
+        assertThat(result.meetingLink()).isEqualTo("https://meet.google.com/abc-defg-hij");
     }
 
     @Test
@@ -82,7 +85,9 @@ class SessionServiceTest {
         Session session = buildSession(SessionStatus.REQUESTED);
         when(sessionRepository.findByIdForUpdate(sessionId)).thenReturn(Optional.of(session));
 
-        assertThatThrownBy(() -> sessionService.acceptSession(requesterId, sessionId))
+        var req = new AcceptSessionRequest("https://meet.google.com/abc-defg-hij");
+
+        assertThatThrownBy(() -> sessionService.acceptSession(requesterId, sessionId, req))
                 .isInstanceOf(UnauthorizedActionException.class);
 
         verify(sessionRepository, never()).save(any());
@@ -90,10 +95,12 @@ class SessionServiceTest {
 
     @Test
     void acceptSession_wrongStatus_throwsInvalidTransition() {
-        Session session = buildSession(SessionStatus.ACCEPTED); // already accepted
+        Session session = buildSession(SessionStatus.ACCEPTED);
         when(sessionRepository.findByIdForUpdate(sessionId)).thenReturn(Optional.of(session));
 
-        assertThatThrownBy(() -> sessionService.acceptSession(providerId, sessionId))
+        var req = new AcceptSessionRequest("https://meet.google.com/abc-defg-hij");
+
+        assertThatThrownBy(() -> sessionService.acceptSession(providerId, sessionId, req))
                 .isInstanceOf(InvalidSessionTransitionException.class);
 
         verify(sessionRepository, never()).save(any());
@@ -141,8 +148,7 @@ class SessionServiceTest {
 
         var result = sessionService.completeSession(requesterId, sessionId);
 
-        verify(ledgerService).transferCredits(requesterId, providerId, new BigDecimal("10.00"),
-                LedgerEntryType.SESSION_PAYMENT, sessionId);
+        verify(ledgerService).transferCredits(requesterId, providerId, new BigDecimal("10.00"), LedgerEntryType.SESSION_PAYMENT, sessionId);
         assertThat(result.status()).isEqualTo(SessionStatus.COMPLETED);
     }
 
@@ -194,7 +200,7 @@ class SessionServiceTest {
     void sessionNotFound_throwsResourceNotFound() {
         when(sessionRepository.findByIdForUpdate(sessionId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> sessionService.acceptSession(providerId, sessionId))
+        assertThatThrownBy(() -> sessionService.acceptSession(providerId, sessionId, null))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 }

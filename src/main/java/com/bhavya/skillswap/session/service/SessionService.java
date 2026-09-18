@@ -5,6 +5,7 @@ import com.bhavya.skillswap.common.exception.ResourceNotFoundException;
 import com.bhavya.skillswap.common.exception.UnauthorizedActionException;
 import com.bhavya.skillswap.ledger.entity.LedgerEntryType;
 import com.bhavya.skillswap.ledger.service.LedgerService;
+import com.bhavya.skillswap.session.dto.AcceptSessionRequest;
 import com.bhavya.skillswap.session.dto.SessionRequest;
 import com.bhavya.skillswap.session.dto.SessionResponse;
 import com.bhavya.skillswap.session.entity.Session;
@@ -32,13 +33,14 @@ public class SessionService {
     }
 
     @Transactional
-    public SessionResponse acceptSession(UUID actingUserId, UUID sessionId) {
+    public SessionResponse acceptSession(UUID actingUserId, UUID sessionId, AcceptSessionRequest req) {
         Session session = lockSession(sessionId);
         if (session.getStatus() != SessionStatus.REQUESTED) {
             throw new InvalidSessionTransitionException("Cannot accept session in status " + session.getStatus());
         }
         requireProvider(session, actingUserId);
         session.setStatus(SessionStatus.ACCEPTED);
+        session.setMeetingLink(req.meetingLink());
         session.setUpdatedAt(java.time.Instant.now());
         return toResponse(sessionRepository.save(session));
     }
@@ -132,6 +134,6 @@ public class SessionService {
 
     private SessionResponse toResponse(Session s) {
         return new SessionResponse(s.getId(), s.getRequesterId(), s.getProviderId(),
-                s.getSkillId(), s.getCreditAmount(), s.getStatus());
+                s.getSkillId(), s.getCreditAmount(), s.getStatus(), s.getMeetingLink());
     }
 }

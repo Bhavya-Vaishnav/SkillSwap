@@ -11,6 +11,7 @@ public record SessionResponse(
         UUID providerId,
         UUID skillId,
         BigDecimal creditAmount,
-        SessionStatus status
+        SessionStatus status,
+        String meetingLink
 ) {
 }
