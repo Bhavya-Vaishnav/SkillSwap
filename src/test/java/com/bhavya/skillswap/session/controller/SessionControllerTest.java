@@ -2,6 +2,7 @@ package com.bhavya.skillswap.session.controller;
 
 import com.bhavya.skillswap.common.util.JwtUtil;
 import com.bhavya.skillswap.session.dto.AcceptSessionRequest;
+import com.bhavya.skillswap.session.dto.PriceSuggestionResponse;
 import com.bhavya.skillswap.session.dto.SessionRequest;
 import com.bhavya.skillswap.session.dto.SessionResponse;
 import com.bhavya.skillswap.session.entity.SessionStatus;
@@ -81,5 +82,15 @@ class SessionControllerTest {
         mockMvc.perform(post("/api/sessions/" + sessionId + "/complete"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("COMPLETED"));
+    }
+
+    @Test
+    void suggestPrice_returnsSuggestion() throws Exception {
+        var response = new PriceSuggestionResponse("Average is 10 credits based on 5 completed sessions.");
+        when(sessionService.suggestPrice("Python")).thenReturn(response);
+
+        mockMvc.perform(get("/api/sessions/suggest-price").param("skillName", "Python"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.suggestion").value("Average is 10 credits based on 5 completed sessions."));
     }
 }

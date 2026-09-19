@@ -8,7 +8,11 @@ import java.util.UUID;
 public record SessionResponse(
         UUID id,
         UUID requesterId,
+        String requesterName,
+        String requesterEmail,
         UUID providerId,
+        String providerName,
+        String providerEmail,
         UUID skillId,
         BigDecimal creditAmount,
         SessionStatus status,

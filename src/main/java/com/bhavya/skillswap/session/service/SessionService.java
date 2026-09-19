@@ -1,16 +1,20 @@
 package com.bhavya.skillswap.session.service;
 
+import com.bhavya.skillswap.common.ai.PriceSuggestionService;
 import com.bhavya.skillswap.common.exception.InvalidSessionTransitionException;
 import com.bhavya.skillswap.common.exception.ResourceNotFoundException;
 import com.bhavya.skillswap.common.exception.UnauthorizedActionException;
 import com.bhavya.skillswap.ledger.entity.LedgerEntryType;
 import com.bhavya.skillswap.ledger.service.LedgerService;
 import com.bhavya.skillswap.session.dto.AcceptSessionRequest;
+import com.bhavya.skillswap.session.dto.PriceSuggestionResponse;
 import com.bhavya.skillswap.session.dto.SessionRequest;
 import com.bhavya.skillswap.session.dto.SessionResponse;
 import com.bhavya.skillswap.session.entity.Session;
 import com.bhavya.skillswap.session.entity.SessionStatus;
 import com.bhavya.skillswap.session.repository.SessionRepository;
+import com.bhavya.skillswap.user.entity.User;
+import com.bhavya.skillswap.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +28,8 @@ public class SessionService {
 
     private final SessionRepository sessionRepository;
     private final LedgerService ledgerService;
+    private final PriceSuggestionService priceSuggestionService;
+    private final UserRepository userRepository;
 
     @Transactional
     public SessionResponse requestSession(UUID requesterId, SessionRequest req) {
@@ -115,6 +121,11 @@ public class SessionService {
                 .toList();
     }
 
+    public PriceSuggestionResponse suggestPrice(String skillName) {
+        String suggestion = priceSuggestionService.suggestPrice(skillName);
+        return new PriceSuggestionResponse(suggestion);
+    }
+
     private Session lockSession(UUID sessionId) {
         return sessionRepository.findByIdForUpdate(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Session not found: " + sessionId));
@@ -133,7 +144,18 @@ public class SessionService {
     }
 
     private SessionResponse toResponse(Session s) {
-        return new SessionResponse(s.getId(), s.getRequesterId(), s.getProviderId(),
-                s.getSkillId(), s.getCreditAmount(), s.getStatus(), s.getMeetingLink());
+        boolean contactVisible = s.getStatus() != SessionStatus.REQUESTED;
+
+        User requester = userRepository.findById(s.getRequesterId()).orElse(null);
+        User provider = userRepository.findById(s.getProviderId()).orElse(null);
+
+        String requesterName = requester != null ? requester.getDisplayName() : null;
+        String providerName = provider != null ? provider.getDisplayName() : null;
+        String requesterEmail = contactVisible && requester != null ? requester.getEmail() : null;
+        String providerEmail = contactVisible && provider != null ? provider.getEmail() : null;
+
+        return new SessionResponse(s.getId(), s.getRequesterId(), requesterName, requesterEmail,
+                s.getProviderId(), providerName, providerEmail, s.getSkillId(),
+                s.getCreditAmount(), s.getStatus(), s.getMeetingLink());
     }
 }

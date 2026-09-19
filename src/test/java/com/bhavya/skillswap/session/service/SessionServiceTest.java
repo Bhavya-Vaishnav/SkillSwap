@@ -1,5 +1,6 @@
 package com.bhavya.skillswap.session.service;
 
+import com.bhavya.skillswap.common.ai.PriceSuggestionService;
 import com.bhavya.skillswap.common.exception.InvalidSessionTransitionException;
 import com.bhavya.skillswap.common.exception.ResourceNotFoundException;
 import com.bhavya.skillswap.common.exception.UnauthorizedActionException;
@@ -32,7 +33,8 @@ class SessionServiceTest {
     private SessionRepository sessionRepository;
     @Mock
     private LedgerService ledgerService;
-
+    @Mock
+    private PriceSuggestionService priceSuggestionService;
     @InjectMocks
     private SessionService sessionService;
 
@@ -202,5 +204,15 @@ class SessionServiceTest {
 
         assertThatThrownBy(() -> sessionService.acceptSession(providerId, sessionId, null))
                 .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void suggestPrice_delegatesToPriceSuggestionService() {
+        when(priceSuggestionService.suggestPrice("Python"))
+                .thenReturn("Average is 10 credits based on 5 sessions.");
+
+        var result = sessionService.suggestPrice("Python");
+
+        assertThat(result.suggestion()).contains("10 credits");
     }
 }

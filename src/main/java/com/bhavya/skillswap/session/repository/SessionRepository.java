@@ -18,4 +18,13 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM Session s WHERE s.id = :id")
     Optional<Session> findByIdForUpdate(@Param("id") UUID id);
+
+    @Query(value = """
+            SELECT COUNT(*), AVG(s.credit_amount), MIN(s.credit_amount), MAX(s.credit_amount)
+            FROM sessions s
+            JOIN skills sk ON s.skill_id = sk.id
+            WHERE LOWER(sk.name) = LOWER(:skillName)
+            AND s.status = 'COMPLETED'
+            """, nativeQuery = true)
+    List<Object[]> getPricingStats(@Param("skillName") String skillName);
 }

@@ -1,6 +1,7 @@
 package com.bhavya.skillswap.session.controller;
 
 import com.bhavya.skillswap.session.dto.AcceptSessionRequest;
+import com.bhavya.skillswap.session.dto.PriceSuggestionResponse;
 import com.bhavya.skillswap.session.dto.SessionRequest;
 import com.bhavya.skillswap.session.dto.SessionResponse;
 import com.bhavya.skillswap.session.service.SessionService;
@@ -57,5 +58,10 @@ public class SessionController {
     @GetMapping("/me")
     public ResponseEntity<List<SessionResponse>> mySessions(@AuthenticationPrincipal UUID userId) {
         return ResponseEntity.ok(sessionService.getMySessions(userId));
+    }
+
+    @GetMapping("/suggest-price")
+    public ResponseEntity<PriceSuggestionResponse> suggestPrice(@RequestParam String skillName) {
+        return ResponseEntity.ok(sessionService.suggestPrice(skillName));
     }
 }
