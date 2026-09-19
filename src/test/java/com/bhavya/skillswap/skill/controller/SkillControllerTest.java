@@ -1,6 +1,7 @@
 package com.bhavya.skillswap.skill.controller;
 
 import com.bhavya.skillswap.common.util.JwtUtil;
+import com.bhavya.skillswap.skill.dto.SkillMatchResponse;
 import com.bhavya.skillswap.skill.dto.SkillRequest;
 import com.bhavya.skillswap.skill.dto.SkillResponse;
 import com.bhavya.skillswap.skill.service.SkillService;
@@ -70,5 +71,15 @@ class SkillControllerTest {
         mockMvc.perform(get("/api/skills"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @Test
+    void searchSkills_returnsMatchList() throws Exception {
+        when(skillService.searchSkills(any(), any(Integer.class)))
+                .thenReturn(List.of(new SkillMatchResponse("abc-123", "Piano", 0.63)));
+
+        mockMvc.perform(get("/api/skills/search").param("query", "music"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
     }
 }

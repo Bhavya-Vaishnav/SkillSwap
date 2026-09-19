@@ -1,5 +1,6 @@
 package com.bhavya.skillswap.skill.service;
 
+import com.bhavya.skillswap.common.ai.SkillEmbeddingService;
 import com.bhavya.skillswap.skill.entity.Skill;
 import com.bhavya.skillswap.skill.repository.SkillRepository;
 import org.junit.jupiter.api.Test;
@@ -7,8 +8,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.ai.document.Document;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,6 +27,8 @@ class SkillServiceTest {
     private SkillRepository skillRepository;
     @InjectMocks
     private SkillService skillService;
+    @Mock
+    private SkillEmbeddingService skillEmbeddingService;
 
     @Test
     void getOrCreateSkill_existingSkill_returnsExisting() {
@@ -87,5 +93,28 @@ class SkillServiceTest {
         org.junit.jupiter.api.Assertions.assertThrows(
                 com.bhavya.skillswap.common.exception.ResourceNotFoundException.class,
                 () -> skillService.getById(id));
+    }
+
+    @Test
+    void searchSkills_returnsMatchResponses() {
+        Document doc = mock(Document.class);
+
+        when(doc.getMetadata()).thenReturn(
+                Map.of(
+                        "skillId", "abc-123",
+                        "name", "Piano"
+                )
+        );
+
+        when(doc.getScore()).thenReturn(0.63);
+
+        when(skillEmbeddingService.findSimilarSkills("music", 5))
+                .thenReturn(List.of(doc));
+
+        var results = skillService.searchSkills("music", 5);
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).name()).isEqualTo("Piano");
+        assertThat(results.get(0).score()).isEqualTo(0.63);
     }
 }

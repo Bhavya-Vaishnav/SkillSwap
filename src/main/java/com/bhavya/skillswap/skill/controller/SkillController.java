@@ -1,5 +1,7 @@
 package com.bhavya.skillswap.skill.controller;
 
+import com.bhavya.skillswap.common.ai.SkillEmbeddingService;
+import com.bhavya.skillswap.skill.dto.SkillMatchResponse;
 import com.bhavya.skillswap.skill.dto.SkillRequest;
 import com.bhavya.skillswap.skill.dto.SkillResponse;
 import com.bhavya.skillswap.skill.service.SkillService;
@@ -26,5 +28,10 @@ public class SkillController {
     @GetMapping
     public ResponseEntity<List<SkillResponse>> listAll() {
         return ResponseEntity.ok(skillService.listAll());
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<SkillMatchResponse>> search(@RequestParam String query) {
+        return ResponseEntity.ok(skillService.searchSkills(query, 5));
     }
 }
