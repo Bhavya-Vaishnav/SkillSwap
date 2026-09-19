@@ -1,8 +1,7 @@
 package com.bhavya.skillswap.userskill.controller;
 
 import com.bhavya.skillswap.common.util.JwtUtil;
-import com.bhavya.skillswap.userskill.dto.UserSkillRequest;
-import com.bhavya.skillswap.userskill.dto.UserSkillResponse;
+import com.bhavya.skillswap.userskill.dto.*;
 import com.bhavya.skillswap.userskill.entity.ProficiencyLevel;
 import com.bhavya.skillswap.userskill.entity.UserSkillRole;
 import com.bhavya.skillswap.userskill.service.UserSkillService;
@@ -19,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -59,6 +59,43 @@ class UserSkillControllerTest {
         ));
 
         mockMvc.perform(get("/api/user-skills/me"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    void parseBio_returnsStructuredResult() throws Exception {
+        var req = new ParseBioRequest("I know Python, want to learn Spanish");
+        var expected = new ParsedBioResult(
+                List.of(new ParsedSkill("Python", "ADVANCED")),
+                List.of("Spanish")
+        );
+
+        when(userSkillService.parseBio(anyString())).thenReturn(expected);
+
+        mockMvc.perform(post("/api/user-skills/parse-bio")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.offered[0].name").value("Python"));
+    }
+
+    @Test
+    void confirmBio_returnsSavedSkills() throws Exception {
+        var confirmed = new ParsedBioResult(
+                List.of(new ParsedSkill("Python", "ADVANCED")),
+                List.of()
+        );
+        var req = new ConfirmBioRequest(confirmed);
+
+        var savedResponse = new UserSkillResponse(UUID.randomUUID(), UUID.randomUUID(), "Python",
+                UserSkillRole.OFFERED, ProficiencyLevel.ADVANCED);
+
+        when(userSkillService.confirmBioSkills(any(), any())).thenReturn(List.of(savedResponse));
+
+        mockMvc.perform(post("/api/user-skills/confirm-bio")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));
     }

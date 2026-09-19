@@ -1,7 +1,6 @@
 package com.bhavya.skillswap.userskill.controller;
 
-import com.bhavya.skillswap.userskill.dto.UserSkillRequest;
-import com.bhavya.skillswap.userskill.dto.UserSkillResponse;
+import com.bhavya.skillswap.userskill.dto.*;
 import com.bhavya.skillswap.userskill.service.UserSkillService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,5 +33,15 @@ public class UserSkillController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<UserSkillResponse>> getUserSkills(@PathVariable UUID userId) {
         return ResponseEntity.ok(userSkillService.getUserSkills(userId));
+    }
+
+    @PostMapping("/parse-bio")
+    public ResponseEntity<ParsedBioResult> parseBio(@Valid @RequestBody ParseBioRequest req) {
+        return ResponseEntity.ok(userSkillService.parseBio(req.bioText()));
+    }
+
+    @PostMapping("/confirm-bio")
+    public ResponseEntity<List<UserSkillResponse>> confirmBio(@AuthenticationPrincipal UUID userId, @Valid @RequestBody ConfirmBioRequest req) {
+        return ResponseEntity.ok(userSkillService.confirmBioSkills(userId, req.confirmedSkills()));
     }
 }
