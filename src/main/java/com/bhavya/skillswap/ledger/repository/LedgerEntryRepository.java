@@ -6,10 +6,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 public interface LedgerEntryRepository extends JpaRepository<LedgerEntry, UUID> {
 
     @Query("SELECT COALESCE(SUM(l.amount), 0) FROM LedgerEntry l WHERE l.userId = :userId")
     BigDecimal getBalance(@Param("userId") UUID userId);
+
+    List<LedgerEntry> findByUserIdOrderByCreatedAtDesc(UUID userId);
 }

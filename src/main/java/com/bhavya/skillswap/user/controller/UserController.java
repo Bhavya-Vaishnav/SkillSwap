@@ -1,5 +1,6 @@
 package com.bhavya.skillswap.user.controller;
 
+import com.bhavya.skillswap.user.dto.PublicUserProfileResponse;
 import com.bhavya.skillswap.user.dto.UpdateBioRequest;
 import com.bhavya.skillswap.user.dto.UserMatchResponse;
 import com.bhavya.skillswap.user.service.UserService;
@@ -30,5 +31,10 @@ public class UserController {
     public ResponseEntity<List<UserMatchResponse>> search(@AuthenticationPrincipal UUID userId,
                                                           @RequestParam String query) {
         return ResponseEntity.ok(userService.searchUsers(userId, query, 5));
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<PublicUserProfileResponse> getPublicProfile(@PathVariable UUID userId) {
+        return ResponseEntity.ok(userService.getPublicProfile(userId));
     }
 }

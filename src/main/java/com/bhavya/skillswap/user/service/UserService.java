@@ -2,6 +2,7 @@ package com.bhavya.skillswap.user.service;
 
 import com.bhavya.skillswap.common.ai.UserEmbeddingService;
 import com.bhavya.skillswap.common.exception.ResourceNotFoundException;
+import com.bhavya.skillswap.user.dto.PublicUserProfileResponse;
 import com.bhavya.skillswap.user.dto.UserMatchResponse;
 import com.bhavya.skillswap.user.entity.User;
 import com.bhavya.skillswap.user.repository.UserRepository;
@@ -35,5 +36,11 @@ public class UserService {
                         (String) doc.getMetadata().get("userId"),
                         doc.getScore()))
                 .toList();
+    }
+
+    public PublicUserProfileResponse getPublicProfile(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        return new PublicUserProfileResponse(user.getId(), user.getDisplayName(), user.getBio());
     }
 }

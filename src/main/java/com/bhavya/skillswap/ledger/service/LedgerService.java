@@ -2,6 +2,7 @@ package com.bhavya.skillswap.ledger.service;
 
 import com.bhavya.skillswap.common.exception.InsufficientBalanceException;
 import com.bhavya.skillswap.common.exception.ResourceNotFoundException;
+import com.bhavya.skillswap.ledger.dto.LedgerEntryResponse;
 import com.bhavya.skillswap.ledger.entity.LedgerEntry;
 import com.bhavya.skillswap.ledger.entity.LedgerEntryType;
 import com.bhavya.skillswap.ledger.repository.LedgerEntryRepository;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -19,6 +21,13 @@ public class LedgerService {
 
     private final LedgerEntryRepository ledgerEntryRepository;
     private final UserRepository userRepository;
+
+    public List<LedgerEntryResponse> getLedgerHistory(UUID userId) {
+        return ledgerEntryRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+                .map(e -> new LedgerEntryResponse(e.getId(), e.getAmount(), e.getEntryType(),
+                        e.getReferenceId(), e.getCreatedAt()))
+                .toList();
+    }
 
     @Transactional
     public void transferCredits(UUID fromUserId, UUID toUserId, BigDecimal amount,
