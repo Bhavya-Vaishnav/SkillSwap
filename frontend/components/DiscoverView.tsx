@@ -366,7 +366,7 @@ export function DiscoverView({
                   : 'Search by concepts, topics, or engineering background (e.g. distributed systems, JVM concurrency)...'
               }
               aria-label="Search skills and peers"
-              className="input-base pl-10 pr-24"
+              className="input-base input-with-icon input-with-button"
             />
             <button
               type="submit"
@@ -457,7 +457,9 @@ export function DiscoverView({
           </div>
           <div className="text-[11px] text-neutral-400">
             {searchMode === 'exact-skill'
-              ? `Direct lookup for "${searchQuery}" (${skillRole === 'OFFERED' ? 'Teachers' : 'Learners'})`
+              ? searchQuery.trim()
+                ? `Direct lookup for "${searchQuery}" (${skillRole === 'OFFERED' ? 'Teachers' : 'Learners'})`
+                : `Catalog lookup (${skillRole === 'OFFERED' ? 'Teachers' : 'Learners'})`
               : 'Ranked by semantic profile match'}
           </div>
         </div>
@@ -510,7 +512,7 @@ export function DiscoverView({
             <p className="text-sm text-neutral-400">
               {searched
                 ? searchMode === 'exact-skill'
-                  ? `No peers currently ${skillRole === 'OFFERED' ? 'offer to teach' : 'want to learn'} "${searchQuery}". Try switching to "Semantic AI Match" or switch roles.`
+                  ? `No peers currently ${skillRole === 'OFFERED' ? 'offer to teach' : 'want to learn'}${searchQuery.trim() ? ` "${searchQuery}"` : ''}. Try switching to "Semantic AI Match" or switch roles.`
                   : `No matching peers found for "${searchQuery}". Try another topic or switch to "Exact Skill Match".`
                 : 'Search above to find peers with complementary skills.'}
             </p>

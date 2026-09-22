@@ -102,14 +102,14 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                 Display Name
               </label>
               <div className="relative">
-                <User className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <User className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="text"
                   required
                   placeholder="e.g. Alex Morgan"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="input-base pl-9"
+                  className="input-base input-with-icon"
                 />
               </div>
             </div>
@@ -120,14 +120,14 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
               Email Address
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Mail className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="email"
                 required
                 placeholder="developer@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="input-base pl-9"
+                className="input-base input-with-icon"
               />
             </div>
           </div>
@@ -137,14 +137,14 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
               Password {isRegister && <span className="text-neutral-500">(minimum 8 characters)</span>}
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Lock className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="password"
                 required
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input-base pl-9"
+                className="input-base input-with-icon"
               />
             </div>
           </div>

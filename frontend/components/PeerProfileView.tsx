@@ -238,10 +238,10 @@ export function PeerProfileView({
 
     try {
       const res = await apiClient.sessions.suggestPrice(selectedSkill.skillName);
-      if (res && res.suggestion) {
-        setPriceSuggestion(res.suggestion);
+      if (res && res.message) {
+        setPriceSuggestion(res.message);
 
-        const { avgPrice } = extractPricingData(res.suggestion);
+        const { avgPrice } = extractPricingData(res.message);
         if (avgPrice !== null && !isNaN(avgPrice) && avgPrice > 0) {
           setCreditOffer(String(avgPrice));
           setAutoAppliedPrice(avgPrice);
@@ -475,7 +475,7 @@ export function PeerProfileView({
                       setCreditOffer(e.target.value);
                       setAutoAppliedPrice(null);
                     }}
-                    className="input-base pr-16 font-mono"
+                    className="input-base !pr-16 font-mono"
                   />
                   {walletBalance > 0 && (
                     <button

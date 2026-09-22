@@ -148,6 +148,26 @@
   box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.4);
 }
 
+.input-with-icon {
+  padding-left: 2.75rem !important;
+}
+
+.input-with-button {
+  padding-right: 6.5rem !important;
+}
+
+/* Maintain dark theme during browser autofill */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #09090b inset !important;
+  -webkit-text-fill-color: #f4f4f5 !important;
+  caret-color: #f4f4f5 !important;
+  transition: background-color 5000s ease-in-out 0s;
+  border-color: #27272a !important;
+}
+
 /* Badge system */
 .badge-emerald {
   display: inline-flex;

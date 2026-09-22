@@ -95,11 +95,14 @@ export function Navbar({
                     <button
                       key={item.id}
                       type="button"
-                      onClick={() => handleItemClick(item.id)}
-                      className={`relative flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all min-h-[38px] cursor-pointer ${
+                      onClick={(e) => {
+                        e.currentTarget.blur();
+                        handleItemClick(item.id);
+                      }}
+                      className={`relative flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition-colors duration-75 min-h-[38px] cursor-pointer focus:outline-none focus:ring-0 ${
                         isActive
-                          ? 'bg-neutral-800 text-emerald-400 font-semibold border border-neutral-700/70 shadow-xs'
-                          : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/60'
+                          ? 'bg-neutral-800 text-emerald-400 font-semibold border-neutral-700/70 shadow-xs'
+                          : 'border-transparent text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/60'
                       }`}
                     >
                       <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-400' : 'text-neutral-400'}`} />
@@ -270,8 +273,11 @@ export function Navbar({
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => handleItemClick(item.id)}
-                  className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all min-h-[48px] relative cursor-pointer ${
+                  onClick={(e) => {
+                    e.currentTarget.blur();
+                    handleItemClick(item.id);
+                  }}
+                  className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-colors duration-75 min-h-[48px] relative cursor-pointer focus:outline-none focus:ring-0 ${
                     isActive
                       ? 'text-emerald-400 bg-neutral-900/90 font-semibold'
                       : 'text-neutral-400 hover:text-neutral-200 active:scale-95'
