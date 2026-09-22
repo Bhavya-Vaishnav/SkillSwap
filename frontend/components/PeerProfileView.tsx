@@ -238,16 +238,17 @@ export function PeerProfileView({
 
     try {
       const res = await apiClient.sessions.suggestPrice(selectedSkill.skillName);
-      if (res && res.message) {
+
+      if (res) {
         setPriceSuggestion(res.message);
 
-        const { avgPrice } = extractPricingData(res.message);
-        if (avgPrice !== null && !isNaN(avgPrice) && avgPrice > 0) {
-          setCreditOffer(String(avgPrice));
-          setAutoAppliedPrice(avgPrice);
+        if (
+          res.averagePrice !== null &&
+          res.averagePrice > 0
+        ) {
+          setCreditOffer(String(res.averagePrice));
+          setAutoAppliedPrice(res.averagePrice);
         }
-      } else {
-        setPriceSuggestion('No suggestion returned by AI service.');
       }
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
