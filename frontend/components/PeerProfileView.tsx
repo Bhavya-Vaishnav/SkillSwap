@@ -13,7 +13,7 @@ import {
   Copy,
   Check,
 } from 'lucide-react';
-import { apiClient, UserSkillResponse } from '@/lib/apiClient';
+import { apiClient, UserSkillResponse, PriceSuggestionResponse } from '@/lib/apiClient';
 
 function formatPriceRange(rawRange: string): string {
   const clean = rawRange.replace(/[*\r\n]/g, '').trim();
@@ -201,6 +201,7 @@ export function PeerProfileView({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [priceSuggestion, setPriceSuggestion] = useState<string | null>(null);
+  const [suggestionDetails, setSuggestionDetails] = useState<PriceSuggestionResponse | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
   const [loadingSuggestion, setLoadingSuggestion] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -235,20 +236,26 @@ export function PeerProfileView({
     setLoadingSuggestion(true);
     setAiError(null);
     setPriceSuggestion(null);
+    setSuggestionDetails(null);
 
     try {
       const res = await apiClient.sessions.suggestPrice(selectedSkill.skillName);
 
       if (res) {
-        setPriceSuggestion(res.message);
+        const text = res.message || res.suggestion || 'Pricing recommendation received.';
+        setPriceSuggestion(text);
+        setSuggestionDetails(res);
 
         if (
           res.averagePrice !== null &&
+          res.averagePrice !== undefined &&
           res.averagePrice > 0
         ) {
           setCreditOffer(String(res.averagePrice));
           setAutoAppliedPrice(res.averagePrice);
         }
+      } else {
+        setPriceSuggestion('No suggestion returned by AI service.');
       }
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
@@ -545,21 +552,29 @@ export function PeerProfileView({
                       <div className="p-2.5 rounded-lg bg-neutral-950/80 border border-purple-500/20">
                         <div className="text-[10px] uppercase font-medium text-neutral-400">Average Price</div>
                         <div className="text-base font-bold text-emerald-400 font-mono mt-0.5">
-                          {metrics.avgPrice !== null ? `${metrics.avgPrice} cr` : '—'}
+                          {suggestionDetails?.averagePrice != null
+                            ? `${suggestionDetails.averagePrice} cr`
+                            : metrics.avgPrice !== null
+                            ? `${metrics.avgPrice} cr`
+                            : '—'}
                         </div>
                       </div>
 
                       <div className="p-2.5 rounded-lg bg-neutral-950/80 border border-purple-500/20">
                         <div className="text-[10px] uppercase font-medium text-neutral-400">Price Range</div>
                         <div className="text-xs font-semibold text-purple-200 mt-1">
-                          {metrics.priceRange || 'Market rate'}
+                          {suggestionDetails?.minimumPrice != null && suggestionDetails?.maximumPrice != null
+                            ? `${suggestionDetails.minimumPrice} – ${suggestionDetails.maximumPrice} cr`
+                            : metrics.priceRange || 'Market rate'}
                         </div>
                       </div>
 
                       <div className="p-2.5 rounded-lg bg-neutral-950/80 border border-purple-500/20">
                         <div className="text-[10px] uppercase font-medium text-neutral-400">Total Sessions</div>
                         <div className="text-xs font-semibold text-neutral-200 mt-1">
-                          {metrics.totalSessions || '1 session'}
+                          {suggestionDetails?.sampleSize != null
+                            ? `${suggestionDetails.sampleSize} ${suggestionDetails.sampleSize === 1 ? 'session' : 'sessions'}`
+                            : metrics.totalSessions || '1 session'}
                         </div>
                       </div>
                     </div>

@@ -153,7 +153,14 @@ export interface SessionResponse {
 }
 
 export interface PriceSuggestionResponse {
-  suggestion: string;
+  skillName?: string;
+  historicalDataAvailable?: boolean;
+  averagePrice?: number | null;
+  minimumPrice?: number | null;
+  maximumPrice?: number | null;
+  sampleSize?: number;
+  message?: string;
+  suggestion?: string;
 }
 
 export interface ErrorResponse {
