@@ -1,0 +1,25 @@
+# Ignore build artifacts
+target/
+*.jar
+
+# Ignore frontend folder (has separate build/deployment lifecycle)
+frontend/
+
+# Ignore Git and IDE configurations
+.git/
+.gitignore
+.gitattributes
+.idea/
+*.iml
+.vscode/
+
+# Ignore test artifacts and documentation
+k6_test_files/
+doc/
+HELP.md
+*.md
+
+# Ignore sensitive local environment files
+.env
+.env.*
+*.log
