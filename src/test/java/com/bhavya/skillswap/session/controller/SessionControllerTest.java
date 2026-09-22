@@ -40,8 +40,8 @@ class SessionControllerTest {
     @Test
     void requestSession_valid_returns201() throws Exception {
         var req = new SessionRequest(UUID.randomUUID(), UUID.randomUUID(), new BigDecimal("10.00"));
-        var res = new SessionResponse(UUID.randomUUID(), UUID.randomUUID(), req.providerId(),
-                req.skillId(), req.creditAmount(), SessionStatus.REQUESTED, null);
+        var res = new SessionResponse(UUID.randomUUID(), UUID.randomUUID(), "Alice", "alice@test.com",
+                req.providerId(), "Bob", "bob@test.com", req.skillId(), req.creditAmount(), SessionStatus.REQUESTED, null);
 
         when(sessionService.requestSession(any(), any())).thenReturn(res);
 
@@ -55,8 +55,8 @@ class SessionControllerTest {
     @Test
     void acceptSession_returns200() throws Exception {
         UUID sessionId = UUID.randomUUID();
-        var res = new SessionResponse(sessionId, UUID.randomUUID(), UUID.randomUUID(),
-                UUID.randomUUID(), new BigDecimal("10.00"), SessionStatus.ACCEPTED,
+        var res = new SessionResponse(sessionId, UUID.randomUUID(), "Alice", "alice@test.com",
+                UUID.randomUUID(), "Bob", "bob@test.com", UUID.randomUUID(), new BigDecimal("10.00"), SessionStatus.ACCEPTED,
                 "https://meet.google.com/abc-defg-hij");
 
         when(sessionService.acceptSession(any(), any(), any())).thenReturn(res);
@@ -74,8 +74,9 @@ class SessionControllerTest {
     @Test
     void completeSession_returns200() throws Exception {
         UUID sessionId = UUID.randomUUID();
-        var res = new SessionResponse(sessionId, UUID.randomUUID(), UUID.randomUUID(),
-                UUID.randomUUID(), new BigDecimal("10.00"), SessionStatus.COMPLETED, "https://meet.google.com/abc-defg-hij");
+        var res = new SessionResponse(sessionId, UUID.randomUUID(), "Alice", "alice@test.com",
+                UUID.randomUUID(), "Bob", "bob@test.com", UUID.randomUUID(), new BigDecimal("10.00"),
+                SessionStatus.COMPLETED, "https://meet.google.com/abc-defg-hij");
 
         when(sessionService.completeSession(any(), any())).thenReturn(res);
 

@@ -35,6 +35,17 @@ public class UserSkillController {
         return ResponseEntity.ok(userSkillService.getUserSkills(userId));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUserSkill(@AuthenticationPrincipal UUID userId, @PathVariable UUID id) {
+        userSkillService.deleteUserSkill(userId, id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/proficiency")
+    public ResponseEntity<UserSkillResponse> updateProficiency(@AuthenticationPrincipal UUID userId, @PathVariable UUID id, @Valid @RequestBody UpdateProficiencyRequest req) {
+        return ResponseEntity.ok(userSkillService.updateProficiency(userId, id, req.proficiency()));
+    }
+
     @PostMapping("/parse-bio")
     public ResponseEntity<ParsedBioResult> parseBio(@Valid @RequestBody ParseBioRequest req) {
         return ResponseEntity.ok(userSkillService.parseBio(req.bioText()));

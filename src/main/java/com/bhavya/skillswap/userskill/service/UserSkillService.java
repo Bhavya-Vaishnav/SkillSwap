@@ -2,9 +2,12 @@ package com.bhavya.skillswap.userskill.service;
 
 import com.bhavya.skillswap.common.ai.BioParsingService;
 import com.bhavya.skillswap.common.exception.DuplicateResourceException;
+import com.bhavya.skillswap.common.exception.ResourceNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import com.bhavya.skillswap.common.exception.InvalidProficiencyException;
 import com.bhavya.skillswap.skill.entity.Skill;
 import com.bhavya.skillswap.skill.service.SkillService;
+import com.bhavya.skillswap.user.service.UserService;
 import com.bhavya.skillswap.userskill.dto.ParsedBioResult;
 import com.bhavya.skillswap.userskill.dto.UserSkillRequest;
 import com.bhavya.skillswap.userskill.dto.UserSkillResponse;
@@ -26,26 +29,13 @@ public class UserSkillService {
     private final UserSkillRepository userSkillRepository;
     private final SkillService skillService;
     private final BioParsingService bioParsingService;
+    private final UserService userService;
 
     @Transactional
     public UserSkillResponse addUserSkill(UUID userId, UserSkillRequest req) {
-        if (req.role() == UserSkillRole.OFFERED && req.proficiency() == null) {
-            throw new InvalidProficiencyException("Proficiency is required when role is OFFERED");
-        }
-        if (req.role() == UserSkillRole.WANTED && req.proficiency() != null) {
-            throw new InvalidProficiencyException("Proficiency must be null when role is WANTED");
-        }
-
-        Skill skill = skillService.getOrCreateSkill(req.skillName(), req.category());
-
-        try {
-            UserSkill userSkill = new UserSkill(userId, skill.getId(), req.role(), req.proficiency());
-            UserSkill saved = userSkillRepository.save(userSkill);
-            return toResponse(saved, skill.getName());
-        } catch (org.springframework.dao.DataIntegrityViolationException e) {
-            throw new DuplicateResourceException(
-                    "You have already added this skill with role " + req.role());
-        }
+        UserSkillResponse response = saveUserSkillOnly(userId, req);
+        userService.reindexEmbedding(userId);
+        return response;
     }
 
     public List<UserSkillResponse> getUserSkills(UUID userId) {
@@ -70,18 +60,65 @@ public class UserSkillService {
             try {
                 proficiency = ProficiencyLevel.valueOf(offered.proficiency().toUpperCase());
             } catch (Exception e) {
-                proficiency = ProficiencyLevel.INTERMEDIATE; // safe fallback if LLM returns something unexpected
+                proficiency = ProficiencyLevel.INTERMEDIATE;
             }
             var req = new UserSkillRequest(offered.name(), null, UserSkillRole.OFFERED, proficiency);
-            results.add(addUserSkill(userId, req));
+            results.add(saveUserSkillOnly(userId, req));
         }
 
         for (String wanted : confirmed.wanted()) {
             var req = new UserSkillRequest(wanted, null, UserSkillRole.WANTED, null);
-            results.add(addUserSkill(userId, req));
+            results.add(saveUserSkillOnly(userId, req));
         }
 
+        userService.reindexEmbedding(userId);
         return results;
+    }
+
+    private UserSkillResponse saveUserSkillOnly(UUID userId, UserSkillRequest req) {
+        if (req.role() == UserSkillRole.OFFERED && req.proficiency() == null) {
+            throw new InvalidProficiencyException("Proficiency is required when role is OFFERED");
+        }
+        if (req.role() == UserSkillRole.WANTED && req.proficiency() != null) {
+            throw new InvalidProficiencyException("Proficiency must be null when role is WANTED");
+        }
+
+        Skill skill = skillService.getOrCreateSkill(req.skillName(), req.category());
+
+        try {
+            UserSkill userSkill = new UserSkill(userId, skill.getId(), req.role(), req.proficiency());
+            UserSkill saved = userSkillRepository.saveAndFlush(userSkill);
+            return toResponse(saved, skill.getName());
+        } catch (DataIntegrityViolationException e) {
+            throw new DuplicateResourceException("You have already added this skill with role " + req.role());
+        }
+    }
+
+    @Transactional
+    public void deleteUserSkill(UUID userId, UUID userSkillId) {
+        UserSkill userSkill = userSkillRepository.findByIdAndUserId(userSkillId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User skill not found: " + userSkillId));
+
+        userSkillRepository.delete(userSkill);
+        userService.reindexEmbedding(userId);
+    }
+
+    @Transactional
+    public UserSkillResponse updateProficiency(UUID userId, UUID userSkillId, ProficiencyLevel proficiency) {
+        UserSkill userSkill = userSkillRepository.findByIdAndUserId(userSkillId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User skill not found: " + userSkillId));
+
+        if (userSkill.getRole() != UserSkillRole.OFFERED) {
+            throw new InvalidProficiencyException("Proficiency can only be set for OFFERED skills");
+        }
+
+        userSkill.setProficiency(proficiency);
+        UserSkill saved = userSkillRepository.save(userSkill);
+
+        Skill skill = skillService.getById(saved.getSkillId());
+        UserSkillResponse response = toResponse(saved, skill.getName());
+        userService.reindexEmbedding(userId);
+        return response;
     }
 
     private UserSkillResponse toResponse(UserSkill us, String skillName) {

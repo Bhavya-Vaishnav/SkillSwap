@@ -3,7 +3,10 @@ package com.bhavya.skillswap.user.controller;
 import com.bhavya.skillswap.user.dto.PublicUserProfileResponse;
 import com.bhavya.skillswap.user.dto.UpdateBioRequest;
 import com.bhavya.skillswap.user.dto.UserMatchResponse;
+import com.bhavya.skillswap.user.dto.UserSummaryResponse;
+import com.bhavya.skillswap.user.repository.UserRepository;
 import com.bhavya.skillswap.user.service.UserService;
+import com.bhavya.skillswap.userskill.entity.UserSkillRole;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -30,11 +33,20 @@ public class UserController {
     @GetMapping("/search")
     public ResponseEntity<List<UserMatchResponse>> search(@AuthenticationPrincipal UUID userId,
                                                           @RequestParam String query) {
-        return ResponseEntity.ok(userService.searchUsers(userId, query, 5));
+        return ResponseEntity.ok(userService.searchUsers(userId, query, 15));
     }
 
     @GetMapping("/{userId}")
     public ResponseEntity<PublicUserProfileResponse> getPublicProfile(@PathVariable UUID userId) {
         return ResponseEntity.ok(userService.getPublicProfile(userId));
     }
+
+    @GetMapping("/by-skill")
+    public ResponseEntity<List<UserSummaryResponse>> findUsersBySkill(
+            @AuthenticationPrincipal UUID currentUserId,
+            @RequestParam String skillName,
+            @RequestParam(defaultValue = "OFFERED") UserSkillRole role) {
+        return ResponseEntity.ok(userService.findUsersBySkill(currentUserId, skillName, role));
+    }
+
 }

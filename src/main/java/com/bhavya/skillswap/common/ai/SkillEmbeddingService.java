@@ -41,7 +41,7 @@ public class SkillEmbeddingService {
         SearchRequest request = SearchRequest.builder()
                 .query(queryText)
                 .topK(topK)
-                .similarityThreshold(0.55)
+                .similarityThreshold(0.30)
                 .filterExpression(filter)
                 .build();
 

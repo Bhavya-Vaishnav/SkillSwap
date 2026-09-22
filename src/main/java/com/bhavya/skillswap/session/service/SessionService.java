@@ -122,8 +122,7 @@ public class SessionService {
     }
 
     public PriceSuggestionResponse suggestPrice(String skillName) {
-        String suggestion = priceSuggestionService.suggestPrice(skillName);
-        return new PriceSuggestionResponse(suggestion);
+        return priceSuggestionService.suggestPrice(skillName);
     }
 
     private Session lockSession(UUID sessionId) {
