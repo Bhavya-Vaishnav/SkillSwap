@@ -15,7 +15,7 @@ RUN mvn dependency:go-offline -B || true
 COPY src ./src
 
 # Build the executable jar skipping tests (tests rely on external live database & AI keys)
-RUN mvn clean package -DskipTests
+RUN mvn clean package -Dmaven.test.skip=true
 
 # ==========================================
 # 2. RUNTIME STAGE

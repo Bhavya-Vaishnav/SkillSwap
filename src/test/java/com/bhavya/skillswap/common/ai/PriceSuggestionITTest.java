@@ -71,9 +71,9 @@ class PriceSuggestionITTest {
         System.out.println(response);
         System.out.println("=========================================");
 
-        assertThat(response).isNotBlank();
+        assertThat(response.message()).isNotBlank();
         // loose check: response should reference the sample size or a price-like number
-        assertThat(response).containsPattern("\\d");
+        assertThat(response.message()).containsPattern("\\d");
     }
 
     @Disabled
@@ -87,6 +87,6 @@ class PriceSuggestionITTest {
         System.out.println(response);
         System.out.println("========================================");
 
-        assertThat(response).isNotBlank();
+        assertThat(response.message()).isNotBlank();
     }
 }

@@ -87,11 +87,19 @@ class SessionControllerTest {
 
     @Test
     void suggestPrice_returnsSuggestion() throws Exception {
-        var response = new PriceSuggestionResponse("Average is 10 credits based on 5 completed sessions.");
+        var response = new PriceSuggestionResponse(
+                "Python",
+                true,
+                new BigDecimal("10.00"),
+                new BigDecimal("8.00"),
+                new BigDecimal("15.00"),
+                5L,
+                "Average is 10 credits based on 5 completed sessions."
+        );
         when(sessionService.suggestPrice("Python")).thenReturn(response);
 
         mockMvc.perform(get("/api/sessions/suggest-price").param("skillName", "Python"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.suggestion").value("Average is 10 credits based on 5 completed sessions."));
+                .andExpect(jsonPath("$.message").value("Average is 10 credits based on 5 completed sessions."));
     }
 }
