@@ -13,7 +13,7 @@ import java.util.UUID;
 
 public interface SessionRepository extends JpaRepository<Session, UUID> {
 
-    List<Session> findByRequesterIdOrProviderId(UUID requesterId, UUID providerId);
+    List<Session> findByRequesterIdOrProviderIdOrderByCreatedAtDesc(UUID requesterId, UUID providerId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM Session s WHERE s.id = :id")

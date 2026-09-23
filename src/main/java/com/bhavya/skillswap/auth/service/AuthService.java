@@ -3,8 +3,10 @@ package com.bhavya.skillswap.auth.service;
 import com.bhavya.skillswap.auth.dto.AuthResponse;
 import com.bhavya.skillswap.auth.dto.LoginRequest;
 import com.bhavya.skillswap.auth.dto.RegisterRequest;
+import com.bhavya.skillswap.auth.dto.UpdatePasswordRequest;
 import com.bhavya.skillswap.common.exception.EmailAlreadyRegisteredException;
 import com.bhavya.skillswap.common.exception.InvalidCredentialsException;
+import com.bhavya.skillswap.common.exception.ResourceNotFoundException;
 import com.bhavya.skillswap.common.util.JwtUtil;
 import com.bhavya.skillswap.ledger.service.LedgerService;
 import com.bhavya.skillswap.user.entity.User;
@@ -15,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -49,5 +52,18 @@ public class AuthService {
         String token = jwtUtil.generateToken(user.getId(), user.getEmail());
 
         return new AuthResponse(token, user.getId(), user.getDisplayName());
+    }
+
+    @Transactional
+    public void updatePassword(UUID userId, UpdatePasswordRequest req) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+        if (!passwordEncoder.matches(req.currentPassword(), user.getPasswordHash())) {
+            throw new InvalidCredentialsException("Current password is incorrect");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(req.newPassword()));
+        userRepository.save(user);
     }
 }

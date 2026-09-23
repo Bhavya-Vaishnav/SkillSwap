@@ -150,6 +150,8 @@ export interface SessionResponse {
   creditAmount: number;
   status: SessionStatus;
   meetingLink: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface PriceSuggestionResponse {

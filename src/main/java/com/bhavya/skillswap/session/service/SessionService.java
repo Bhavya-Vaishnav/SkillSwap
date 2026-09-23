@@ -116,7 +116,7 @@ public class SessionService {
     }
 
     public List<SessionResponse> getMySessions(UUID userId) {
-        return sessionRepository.findByRequesterIdOrProviderId(userId, userId).stream()
+        return sessionRepository.findByRequesterIdOrProviderIdOrderByCreatedAtDesc(userId, userId).stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -155,6 +155,7 @@ public class SessionService {
 
         return new SessionResponse(s.getId(), s.getRequesterId(), requesterName, requesterEmail,
                 s.getProviderId(), providerName, providerEmail, s.getSkillId(),
-                s.getCreditAmount(), s.getStatus(), s.getMeetingLink());
+                s.getCreditAmount(), s.getStatus(), s.getMeetingLink(),
+                s.getCreatedAt(), s.getUpdatedAt());
     }
 }

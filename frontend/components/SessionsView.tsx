@@ -11,8 +11,30 @@ import {
   User,
   ExternalLink,
   Clock,
+  ArrowUpDown,
 } from 'lucide-react';
 import { SessionResponse, SessionStatus } from '@/lib/apiClient';
+
+export type SessionSortOption =
+  | 'ACTION_REQUIRED'
+  | 'NEWEST_FIRST'
+  | 'RECENTLY_UPDATED'
+  | 'CREDITS_HIGH'
+  | 'CREDITS_LOW';
+
+function formatSessionDate(isoString?: string | null): string | null {
+  if (!isoString) return null;
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return null;
+
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
 
 interface SessionsViewProps {
   sessions: SessionResponse[];
@@ -38,11 +60,27 @@ export function SessionsView({
   onNavigate,
 }: SessionsViewProps) {
   const [filter, setFilter] = useState<'ALL' | SessionStatus>('ALL');
+  const [sortOption, setSortOption] = useState<SessionSortOption>('ACTION_REQUIRED');
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [customMeetingLink, setCustomMeetingLink] = useState('https://meet.google.com/new');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const sortedSessions = React.useMemo(() => {
+    const parseTime = (iso?: string | null): number => {
+      if (!iso) return 0;
+      const t = new Date(iso).getTime();
+      return isNaN(t) ? 0 : t;
+    };
+
+    const tieBreak = (a: SessionResponse, b: SessionResponse): number => {
+      const timeA = parseTime(a.createdAt);
+      const timeB = parseTime(b.createdAt);
+      if (timeB !== timeA) {
+        return timeB - timeA; // createdAt DESC
+      }
+      return b.id.localeCompare(a.id); // sessionId DESC
+    };
+
     const statusWeight: Record<SessionStatus, number> = {
       REQUESTED: 5,
       ACCEPTED: 4,
@@ -52,11 +90,43 @@ export function SessionsView({
       REJECTED: 0,
     };
 
-    return [...sessions].reverse().sort((a, b) => {
-      const diff = (statusWeight[b.status] ?? 0) - (statusWeight[a.status] ?? 0);
-      return diff;
+    return [...sessions].sort((a, b) => {
+      switch (sortOption) {
+        case 'ACTION_REQUIRED': {
+          const diff = (statusWeight[b.status] ?? 0) - (statusWeight[a.status] ?? 0);
+          if (diff !== 0) return diff;
+          return tieBreak(a, b);
+        }
+        case 'NEWEST_FIRST': {
+          return tieBreak(a, b);
+        }
+        case 'RECENTLY_UPDATED': {
+          const timeA = parseTime(a.updatedAt || a.createdAt);
+          const timeB = parseTime(b.updatedAt || b.createdAt);
+          if (timeB !== timeA) {
+            return timeB - timeA; // updatedAt DESC
+          }
+          return tieBreak(a, b);
+        }
+        case 'CREDITS_HIGH': {
+          const creditsA = typeof a.creditAmount === 'number' ? a.creditAmount : Number(a.creditAmount) || 0;
+          const creditsB = typeof b.creditAmount === 'number' ? b.creditAmount : Number(b.creditAmount) || 0;
+          const diff = creditsB - creditsA;
+          if (diff !== 0) return diff;
+          return tieBreak(a, b);
+        }
+        case 'CREDITS_LOW': {
+          const creditsA = typeof a.creditAmount === 'number' ? a.creditAmount : Number(a.creditAmount) || 0;
+          const creditsB = typeof b.creditAmount === 'number' ? b.creditAmount : Number(b.creditAmount) || 0;
+          const diff = creditsA - creditsB;
+          if (diff !== 0) return diff;
+          return tieBreak(a, b);
+        }
+        default:
+          return tieBreak(a, b);
+      }
     });
-  }, [sessions]);
+  }, [sessions, sortOption]);
 
   const filteredSessions = React.useMemo(() => {
     return sortedSessions.filter((s) => {
@@ -174,24 +244,46 @@ export function SessionsView({
         </button>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-1.5 border-b border-neutral-800 pb-2 text-xs overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-        {(['ALL', 'REQUESTED', 'ACCEPTED', 'COMPLETED', 'DISPUTED', 'CANCELLED', 'REJECTED'] as const).map(
-          (tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setFilter(tab)}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-colors shrink-0 min-h-[34px] cursor-pointer ${
-                filter === tab
-                  ? 'bg-neutral-800 text-white font-semibold'
-                  : 'text-neutral-400 hover:text-white bg-neutral-900/40'
-              }`}
-            >
-              {tab === 'ALL' ? 'All Sessions' : tab}
-            </button>
-          )
-        )}
+      {/* Filter Tabs & Sort Control */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-800 pb-2">
+        <div className="flex items-center gap-1.5 text-xs overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          {(['ALL', 'REQUESTED', 'ACCEPTED', 'COMPLETED', 'DISPUTED', 'CANCELLED', 'REJECTED'] as const).map(
+            (tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setFilter(tab)}
+                className={`px-3 py-1.5 rounded-lg font-medium transition-colors shrink-0 min-h-[34px] cursor-pointer ${
+                  filter === tab
+                    ? 'bg-neutral-800 text-white font-semibold'
+                    : 'text-neutral-400 hover:text-white bg-neutral-900/40'
+                }`}
+              >
+                {tab === 'ALL' ? 'All Sessions' : tab}
+              </button>
+            )
+          )}
+        </div>
+
+        {/* Sort Selector */}
+        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+          <label htmlFor="session-sort" className="text-xs text-neutral-400 font-medium flex items-center gap-1.5">
+            <ArrowUpDown className="w-3.5 h-3.5 text-neutral-500" />
+            <span>Sort:</span>
+          </label>
+          <select
+            id="session-sort"
+            value={sortOption}
+            onChange={(e) => setSortOption(e.target.value as SessionSortOption)}
+            className="input-base text-xs py-1.5 px-3 bg-neutral-900 border-neutral-700 text-neutral-200 rounded-lg cursor-pointer focus:border-emerald-500"
+          >
+            <option value="ACTION_REQUIRED">Action Required First</option>
+            <option value="NEWEST_FIRST">Newest Created First</option>
+            <option value="RECENTLY_UPDATED">Recently Updated</option>
+            <option value="CREDITS_HIGH">Credits: High to Low</option>
+            <option value="CREDITS_LOW">Credits: Low to High</option>
+          </select>
+        </div>
       </div>
 
       {/* Sessions List */}
@@ -218,6 +310,7 @@ export function SessionsView({
             const isProvider = currentUserId
               ? session.providerId.toLowerCase() === currentUserId.toLowerCase()
               : false;
+            const sessionDate = formatSessionDate(session.createdAt);
 
             return (
               <div
@@ -237,6 +330,15 @@ export function SessionsView({
                         <span className={getStatusBadge(session.status)}>
                           {session.status}
                         </span>
+                        {sessionDate && (
+                          <span
+                            title={session.createdAt ? new Date(session.createdAt).toLocaleString() : undefined}
+                            className="inline-flex items-center gap-1 text-[11px] text-neutral-400 font-medium"
+                          >
+                            <Clock className="w-3 h-3 text-neutral-500 shrink-0" />
+                            <span>{sessionDate}</span>
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-neutral-300 mt-1 truncate">
                         Provider:{' '}

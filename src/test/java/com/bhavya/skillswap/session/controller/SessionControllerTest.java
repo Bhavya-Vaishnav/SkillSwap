@@ -17,6 +17,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -41,7 +42,8 @@ class SessionControllerTest {
     void requestSession_valid_returns201() throws Exception {
         var req = new SessionRequest(UUID.randomUUID(), UUID.randomUUID(), new BigDecimal("10.00"));
         var res = new SessionResponse(UUID.randomUUID(), UUID.randomUUID(), "Alice", "alice@test.com",
-                req.providerId(), "Bob", "bob@test.com", req.skillId(), req.creditAmount(), SessionStatus.REQUESTED, null);
+                req.providerId(), "Bob", "bob@test.com", req.skillId(), req.creditAmount(), SessionStatus.REQUESTED, null,
+                Instant.now(), Instant.now());
 
         when(sessionService.requestSession(any(), any())).thenReturn(res);
 
@@ -57,7 +59,7 @@ class SessionControllerTest {
         UUID sessionId = UUID.randomUUID();
         var res = new SessionResponse(sessionId, UUID.randomUUID(), "Alice", "alice@test.com",
                 UUID.randomUUID(), "Bob", "bob@test.com", UUID.randomUUID(), new BigDecimal("10.00"), SessionStatus.ACCEPTED,
-                "https://meet.google.com/abc-defg-hij");
+                "https://meet.google.com/abc-defg-hij", Instant.now(), Instant.now());
 
         when(sessionService.acceptSession(any(), any(), any())).thenReturn(res);
 
@@ -76,7 +78,7 @@ class SessionControllerTest {
         UUID sessionId = UUID.randomUUID();
         var res = new SessionResponse(sessionId, UUID.randomUUID(), "Alice", "alice@test.com",
                 UUID.randomUUID(), "Bob", "bob@test.com", UUID.randomUUID(), new BigDecimal("10.00"),
-                SessionStatus.COMPLETED, "https://meet.google.com/abc-defg-hij");
+                SessionStatus.COMPLETED, "https://meet.google.com/abc-defg-hij", Instant.now(), Instant.now());
 
         when(sessionService.completeSession(any(), any())).thenReturn(res);
 

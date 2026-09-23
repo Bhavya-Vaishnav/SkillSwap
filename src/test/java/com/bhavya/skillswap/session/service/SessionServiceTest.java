@@ -18,7 +18,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.bhavya.skillswap.user.repository.UserRepository;
+
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,6 +39,8 @@ class SessionServiceTest {
     private LedgerService ledgerService;
     @Mock
     private PriceSuggestionService priceSuggestionService;
+    @Mock
+    private UserRepository userRepository;
     @InjectMocks
     private SessionService sessionService;
 
@@ -215,5 +220,22 @@ class SessionServiceTest {
         var result = sessionService.suggestPrice("Python");
 
 //        assertThat(result.suggestion()).contains("10 credits");
+    }
+
+    @Test
+    void getMySessions_delegatesToRepositoryWithCreatedAtDesc() {
+        Session s1 = buildSession(SessionStatus.REQUESTED);
+        Session s2 = buildSession(SessionStatus.COMPLETED);
+        when(sessionRepository.findByRequesterIdOrProviderIdOrderByCreatedAtDesc(requesterId, requesterId))
+                .thenReturn(List.of(s1, s2));
+
+        var results = sessionService.getMySessions(requesterId);
+
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0).id()).isEqualTo(s1.getId());
+        assertThat(results.get(0).createdAt()).isEqualTo(s1.getCreatedAt());
+        assertThat(results.get(0).updatedAt()).isEqualTo(s1.getUpdatedAt());
+        assertThat(results.get(1).id()).isEqualTo(s2.getId());
+        verify(sessionRepository).findByRequesterIdOrProviderIdOrderByCreatedAtDesc(requesterId, requesterId);
     }
 }

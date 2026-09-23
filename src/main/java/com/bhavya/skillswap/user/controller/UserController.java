@@ -31,8 +31,7 @@ public class UserController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<UserMatchResponse>> search(@AuthenticationPrincipal UUID userId,
-                                                          @RequestParam String query) {
+    public ResponseEntity<List<UserMatchResponse>> search(@AuthenticationPrincipal UUID userId, @RequestParam String query) {
         return ResponseEntity.ok(userService.searchUsers(userId, query, 15));
     }
 
