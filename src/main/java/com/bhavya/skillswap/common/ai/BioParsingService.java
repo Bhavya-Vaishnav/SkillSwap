@@ -3,6 +3,7 @@ package com.bhavya.skillswap.common.ai;
 import com.bhavya.skillswap.userskill.dto.ParsedBioResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -48,6 +49,7 @@ public class BioParsingService {
             %s
             """;
 
+    @Cacheable(value = "parsedBio", key = "T(org.springframework.util.DigestUtils).md5DigestAsHex(#bioText.trim().bytes)")
     public ParsedBioResult parseBio(String bioText) {
         ChatClient chatClient = chatClientBuilder.build();
 

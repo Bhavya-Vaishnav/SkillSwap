@@ -24,8 +24,7 @@ public class UserController {
     private final UserService userService;
 
     @PutMapping("/me/bio")
-    public ResponseEntity<Void> updateBio(@AuthenticationPrincipal UUID userId,
-                                          @Valid @RequestBody UpdateBioRequest req) {
+    public ResponseEntity<Void> updateBio(@AuthenticationPrincipal UUID userId, @Valid @RequestBody UpdateBioRequest req) {
         userService.updateBio(userId, req.bio());
         return ResponseEntity.ok().build();
     }

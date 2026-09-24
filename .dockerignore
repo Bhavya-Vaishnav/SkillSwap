@@ -1,7 +1,7 @@
 # Ignore build artifacts
 target/
 *.jar
-
+.mvn/wrapper/
 # Ignore frontend folder (has separate build/deployment lifecycle)
 frontend/
 

@@ -11,6 +11,16 @@ spring:
     hibernate:
       ddl-auto: validate
 
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+    cache:
+      type: redis
+      redis:
+        time-to-live: 300000
+
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -37,4 +47,4 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET}
-  expiration-ms: 86400000
+  expiration-ms: 3600000

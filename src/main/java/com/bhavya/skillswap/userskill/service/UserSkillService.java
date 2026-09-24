@@ -3,6 +3,8 @@ package com.bhavya.skillswap.userskill.service;
 import com.bhavya.skillswap.common.ai.BioParsingService;
 import com.bhavya.skillswap.common.exception.DuplicateResourceException;
 import com.bhavya.skillswap.common.exception.ResourceNotFoundException;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import com.bhavya.skillswap.common.exception.InvalidProficiencyException;
 import com.bhavya.skillswap.skill.entity.Skill;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +34,7 @@ public class UserSkillService {
     private final BioParsingService bioParsingService;
     private final UserService userService;
 
+    @CacheEvict(value = "userSkills", key = "#userId")
     @Transactional
     public UserSkillResponse addUserSkill(UUID userId, UserSkillRequest req) {
         UserSkillResponse response = saveUserSkillOnly(userId, req);
@@ -38,19 +42,21 @@ public class UserSkillService {
         return response;
     }
 
+    @Cacheable(value = "userSkills", key = "#userId")
     public List<UserSkillResponse> getUserSkills(UUID userId) {
         return userSkillRepository.findByUserId(userId).stream()
                 .map(us -> {
                     Skill skill = skillService.getById(us.getSkillId());
                     return toResponse(us, skill.getName());
                 })
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public ParsedBioResult parseBio(String bioText) {
         return bioParsingService.parseBio(bioText);
     }
 
+    @CacheEvict(value = "userSkills", key = "#userId")
     @Transactional
     public List<UserSkillResponse> confirmBioSkills(UUID userId, ParsedBioResult confirmed) {
         List<UserSkillResponse> results = new java.util.ArrayList<>();
@@ -94,6 +100,7 @@ public class UserSkillService {
         }
     }
 
+    @CacheEvict(value = "userSkills", key = "#userId")
     @Transactional
     public void deleteUserSkill(UUID userId, UUID userSkillId) {
         UserSkill userSkill = userSkillRepository.findByIdAndUserId(userSkillId, userId)
@@ -103,6 +110,7 @@ public class UserSkillService {
         userService.reindexEmbedding(userId);
     }
 
+    @CacheEvict(value = "userSkills", key = "#userId")
     @Transactional
     public UserSkillResponse updateProficiency(UUID userId, UUID userSkillId, ProficiencyLevel proficiency) {
         UserSkill userSkill = userSkillRepository.findByIdAndUserId(userSkillId, userId)

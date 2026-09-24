@@ -17,10 +17,14 @@ import com.bhavya.skillswap.user.entity.User;
 import com.bhavya.skillswap.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +35,10 @@ public class SessionService {
     private final PriceSuggestionService priceSuggestionService;
     private final UserRepository userRepository;
 
+    @Caching(evict = {
+            @CacheEvict(value = "userSessions", key = "#result.requesterId"),
+            @CacheEvict(value = "userSessions", key = "#result.providerId")
+    })
     @Transactional
     public SessionResponse requestSession(UUID requesterId, SessionRequest req) {
         Session session = new Session(requesterId, req.providerId(), req.skillId(), req.creditAmount());
@@ -38,6 +46,10 @@ public class SessionService {
         return toResponse(saved);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "userSessions", key = "#result.requesterId"),
+            @CacheEvict(value = "userSessions", key = "#result.providerId")
+    })
     @Transactional
     public SessionResponse acceptSession(UUID actingUserId, UUID sessionId, AcceptSessionRequest req) {
         Session session = lockSession(sessionId);
@@ -51,6 +63,10 @@ public class SessionService {
         return toResponse(sessionRepository.save(session));
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "userSessions", key = "#result.requesterId"),
+            @CacheEvict(value = "userSessions", key = "#result.providerId")
+    })
     @Transactional
     public SessionResponse rejectSession(UUID actingUserId, UUID sessionId) {
         Session session = lockSession(sessionId);
@@ -63,6 +79,10 @@ public class SessionService {
         return toResponse(sessionRepository.save(session));
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "userSessions", key = "#result.requesterId"),
+            @CacheEvict(value = "userSessions", key = "#result.providerId")
+    })
     @Transactional
     public SessionResponse cancelSession(UUID actingUserId, UUID sessionId) {
         Session session = lockSession(sessionId);
@@ -75,6 +95,10 @@ public class SessionService {
         return toResponse(sessionRepository.save(session));
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "userSessions", key = "#result.requesterId"),
+            @CacheEvict(value = "userSessions", key = "#result.providerId")
+    })
     @Transactional
     public SessionResponse disputeSession(UUID actingUserId, UUID sessionId) {
         Session session = lockSession(sessionId);
@@ -93,6 +117,11 @@ public class SessionService {
      * transfer fails (e.g. insufficient balance), the whole thing rolls back
      * and the session stays ACCEPTED.
      */
+    @Caching(evict = {
+            @CacheEvict(value = "userSessions", key = "#result.requesterId"),
+            @CacheEvict(value = "userSessions", key = "#result.providerId"),
+            @CacheEvict(value = "pricingStats", allEntries = true)
+    })
     @Transactional
     public SessionResponse completeSession(UUID actingUserId, UUID sessionId) {
         Session session = lockSession(sessionId);
@@ -115,10 +144,11 @@ public class SessionService {
         return toResponse(sessionRepository.save(session));
     }
 
+    @Cacheable(value = "userSessions", key = "#userId")
     public List<SessionResponse> getMySessions(UUID userId) {
         return sessionRepository.findByRequesterIdOrProviderIdOrderByCreatedAtDesc(userId, userId).stream()
                 .map(this::toResponse)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public PriceSuggestionResponse suggestPrice(String skillName) {

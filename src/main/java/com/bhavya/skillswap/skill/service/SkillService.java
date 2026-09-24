@@ -9,11 +9,14 @@ import com.bhavya.skillswap.skill.repository.SkillRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.document.Document;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +30,7 @@ public class SkillService {
      */
     private final SkillEmbeddingService skillEmbeddingService;
 
+    @CacheEvict(value = "skillsCatalog", key = "'all'")
     @Transactional
     public Skill getOrCreateSkill(String name, String category) {
         String trimmedName = name.trim();
@@ -39,17 +43,18 @@ public class SkillService {
                         skillEmbeddingService.indexSkill(saved.getId(), saved.getName(), saved.getCategory());
                         return saved;
                     } catch (DataIntegrityViolationException e) {
-                        return skillRepository.findByNameIgnoreCase(trimmedName)
-                                .orElseThrow(() -> e);
+                        return skillRepository.findByNameIgnoreCase(trimmedName).orElseThrow(() -> e);
                     }
                 });
     }
 
+    @CacheEvict(value = "skillsCatalog", key = "'all'")
     public SkillResponse createSkill(SkillRequest req) {
         Skill skill = getOrCreateSkill(req.name(), req.category());
         return toResponse(skill);
     }
 
+    @Cacheable(value = "skillSearch", key = "#query.trim().toLowerCase()")
     public List<SkillMatchResponse> searchSkills(String query, int topK) {
         List<Document> results = skillEmbeddingService.findSimilarSkills(query, topK);
         return results.stream()
@@ -57,13 +62,14 @@ public class SkillService {
                         (String) doc.getMetadata().get("skillId"),
                         (String) doc.getMetadata().get("name"),
                         doc.getScore()))
-                .toList();
+                .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "skillsCatalog", key = "'all'")
     public List<SkillResponse> listAll() {
         return skillRepository.findAll().stream()
                 .map(this::toResponse)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public Skill getById(UUID id) {

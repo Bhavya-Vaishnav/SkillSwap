@@ -14,6 +14,8 @@ import com.bhavya.skillswap.userskill.entity.UserSkillRole;
 import com.bhavya.skillswap.userskill.repository.UserSkillRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,6 +31,7 @@ public class UserService {
     private final SkillRepository skillRepository;
     private final UserEmbeddingService userEmbeddingService;
 
+    @CacheEvict(value = "userProfiles", key = "#userId")
     @Transactional
     public void updateBio(UUID userId, String bio) {
         User user = userRepository.findById(userId)
@@ -102,6 +105,7 @@ public class UserService {
                 .toList();
     }
 
+    @Cacheable(value = "userProfiles", key = "#userId")
     public PublicUserProfileResponse getPublicProfile(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));

@@ -3,6 +3,7 @@ package com.bhavya.skillswap.common.ai;
 import com.bhavya.skillswap.session.dto.PriceSuggestionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,6 +32,7 @@ public class PriceSuggestionService {
             - Keep the message short.
             """;
 
+    @Cacheable(value = "pricingStats", key = "#skillName.toLowerCase()")
     public PriceSuggestionResponse suggestPrice(String skillName) {
 
         ChatClient chatClient = chatClientBuilder.build();

@@ -1,6 +1,5 @@
 package com.bhavya.skillswap.skill.controller;
 
-import com.bhavya.skillswap.common.ai.SkillEmbeddingService;
 import com.bhavya.skillswap.skill.dto.SkillMatchResponse;
 import com.bhavya.skillswap.skill.dto.SkillRequest;
 import com.bhavya.skillswap.skill.dto.SkillResponse;
