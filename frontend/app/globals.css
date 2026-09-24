@@ -29,6 +29,17 @@
   ::-webkit-scrollbar-thumb:hover {
     background: #3f3f46;
   }
+
+  /* Remove default browser spin buttons from number inputs */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
 }
 
 /* Reusable Design System Component Tokens */

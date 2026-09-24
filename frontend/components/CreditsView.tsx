@@ -539,7 +539,7 @@ export function CreditsView({
                   step="any"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="input-base font-mono"
+                  className="input-base font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   required
                 />
               </div>

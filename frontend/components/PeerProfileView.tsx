@@ -483,7 +483,7 @@ export function PeerProfileView({
                       setCreditOffer(e.target.value);
                       setAutoAppliedPrice(null);
                     }}
-                    className="input-base !pr-16 font-mono"
+                    className="input-base !pr-16 font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                   {walletBalance > 0 && (
                     <button

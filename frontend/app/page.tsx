@@ -10,6 +10,7 @@ import { PeerProfileView, PeerDetail } from '@/components/PeerProfileView';
 import { MySkillsView } from '@/components/MySkillsView';
 import { SessionsView } from '@/components/SessionsView';
 import { CreditsView } from '@/components/CreditsView';
+import { ProfileView } from '@/components/ProfileView';
 import { SkillExtractionModal } from '@/components/SkillExtractionModal';
 import { VideoRoomModal } from '@/components/VideoRoomModal';
 import { AuthModal } from '@/components/AuthModal';
@@ -601,6 +602,17 @@ export default function Home() {
               <CreditsView
                 walletBalance={walletBalance}
                 onRefreshBalance={loadData}
+                onToast={showToast}
+              />
+            )}
+
+            {activeTab === 'profile' && (
+              <ProfileView
+                currentUser={currentUser}
+                walletBalance={walletBalance}
+                sessions={sessions}
+                userSkills={userSkills}
+                onNavigate={handleNavigate}
                 onToast={showToast}
               />
             )}

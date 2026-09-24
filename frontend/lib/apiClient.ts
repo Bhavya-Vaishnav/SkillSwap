@@ -35,6 +35,11 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface UpdatePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 // User DTOs
 export interface UpdateBioRequest {
   bio: string;
@@ -342,7 +347,7 @@ class ApiClient {
         // failed reading response text
       }
 
-      if (response.status === 401 || response.status === 403) {
+      if ((response.status === 401 || response.status === 403) && !endpoint.includes('/api/auth/password')) {
         // Token expired, unauthorized, or invalid session
         this.setAuth(null);
       }
@@ -380,6 +385,13 @@ class ApiClient {
       });
       this.setAuth(res);
       return res;
+    },
+
+    updatePassword: async (req: UpdatePasswordRequest): Promise<void> => {
+      await this.request<void>('/api/auth/password', {
+        method: 'PUT',
+        body: JSON.stringify(req),
+      });
     },
 
     logout: (): void => {

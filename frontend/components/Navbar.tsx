@@ -138,16 +138,25 @@ export function Navbar({
               {/* User Profile / Auth Button */}
               {currentUser ? (
                 <div className="hidden lg:flex items-center gap-2 pl-1">
-                  <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-neutral-900 border border-neutral-800">
+                  <button
+                    type="button"
+                    onClick={() => handleItemClick('profile')}
+                    className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer min-h-[38px] ${
+                      activeTab === 'profile'
+                        ? 'bg-neutral-800 border-emerald-500/50 text-emerald-400 shadow-xs'
+                        : 'bg-neutral-900 border-neutral-800 hover:border-neutral-700 text-neutral-200 hover:text-white'
+                    }`}
+                    title="View Profile & Settings"
+                  >
                     <div className="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-xs font-bold shrink-0">
                       {currentUser.displayName.charAt(0).toUpperCase()}
                     </div>
                     <div className="text-left text-xs max-w-[120px] truncate">
-                      <div className="font-medium text-neutral-200 leading-tight truncate">
+                      <div className="font-medium leading-tight truncate">
                         {currentUser.displayName}
                       </div>
                     </div>
-                  </div>
+                  </button>
                   <button
                     type="button"
                     onClick={onLogout}
@@ -187,7 +196,11 @@ export function Navbar({
               <div className="flex items-center justify-between p-3 rounded-xl bg-neutral-900 border border-neutral-800">
                 {currentUser ? (
                   <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-2.5 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => handleItemClick('profile')}
+                      className="flex items-center gap-2.5 min-w-0 text-left cursor-pointer flex-1"
+                    >
                       <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-xs font-bold shrink-0">
                         {currentUser.displayName.charAt(0).toUpperCase()}
                       </div>
@@ -195,9 +208,9 @@ export function Navbar({
                         <div className="text-xs font-semibold text-white truncate">
                           {currentUser.displayName}
                         </div>
-                        <div className="text-[10px] text-emerald-400 font-mono">{walletBalance} cr available</div>
+                        <div className="text-[10px] text-emerald-400">View Profile &amp; Settings →</div>
                       </div>
-                    </div>
+                    </button>
                     <button
                       type="button"
                       onClick={() => {
