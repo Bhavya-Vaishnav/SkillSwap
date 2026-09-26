@@ -14,7 +14,6 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private final RateLimiterService rateLimiterService;
@@ -23,7 +22,6 @@ public class RateLimitFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain
     ) throws ServletException, IOException {
-        log.info("RateLimitFilter hit: {}", request.getRequestURI());
         String path = request.getRequestURI();
 
         // Skip authentication endpoints

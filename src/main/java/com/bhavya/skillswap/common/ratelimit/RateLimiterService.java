@@ -21,7 +21,6 @@ import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class RateLimiterService implements InitializingBean {
 
     private final LettuceConnectionFactory lettuceConnectionFactory;
@@ -55,8 +54,6 @@ public class RateLimiterService implements InitializingBean {
                         .build())
                 .build();
 
-        log.info("RateLimiterService initialized, capacity={}, refillTokens={}, refillSeconds={}",
-                props.getCapacity(), props.getRefillTokens(), props.getRefillSeconds());
     }
 
     public boolean tryConsume(String userId) {
@@ -64,7 +61,6 @@ public class RateLimiterService implements InitializingBean {
                 .build("rl:" + userId, () -> bucketConfig);
 
         boolean consumed = bucket.tryConsume(1);
-        log.info("Rate limit check for {}: {}", userId, consumed);
         return consumed;
     }
 }
