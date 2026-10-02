@@ -209,16 +209,47 @@ class ApiClient {
   // In-flight GET request deduplication map to prevent redundant parallel HTTP calls
   private inFlightGetRequests = new Map<string, Promise<any>>();
 
+  public isTokenExpired(token: string | null): boolean {
+    if (!token) return true;
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return true;
+      const base64Url = parts[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      const payload = JSON.parse(jsonPayload);
+      if (!payload.exp) return false;
+      // Buffer by 5 seconds (5000 ms) to avoid boundary race conditions
+      return Date.now() >= payload.exp * 1000 - 5000;
+    } catch {
+      return true;
+    }
+  }
+
   constructor() {
     if (typeof window !== 'undefined') {
-      this.token = localStorage.getItem(TOKEN_KEY);
-      const userStr = localStorage.getItem(USER_KEY);
-      if (userStr) {
-        try {
-          this.currentUser = JSON.parse(userStr);
-        } catch {
-          this.currentUser = null;
+      const storedToken = localStorage.getItem(TOKEN_KEY);
+      if (storedToken && !this.isTokenExpired(storedToken)) {
+        this.token = storedToken;
+        const userStr = localStorage.getItem(USER_KEY);
+        if (userStr) {
+          try {
+            this.currentUser = JSON.parse(userStr);
+          } catch {
+            this.currentUser = null;
+          }
         }
+      } else if (storedToken) {
+        // Expired or corrupt token found in localStorage: auto-clean immediately
+        this.token = null;
+        this.currentUser = null;
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
       }
     }
   }
@@ -267,15 +298,28 @@ class ApiClient {
   }
 
   public getToken(): string | null {
+    if (this.token && this.isTokenExpired(this.token)) {
+      this.setAuth(null);
+      return null;
+    }
     return this.token;
   }
 
   public getCurrentUser(): AuthUser | null {
+    if (this.token && this.isTokenExpired(this.token)) {
+      this.setAuth(null);
+      return null;
+    }
     return this.currentUser;
   }
 
   public isAuthenticated(): boolean {
-    return !!this.token;
+    if (!this.token) return false;
+    if (this.isTokenExpired(this.token)) {
+      this.setAuth(null);
+      return false;
+    }
+    return true;
   }
 
   private async request<T>(
@@ -311,6 +355,10 @@ class ApiClient {
     };
 
     if (this.token) {
+      if (this.isTokenExpired(this.token)) {
+        this.setAuth(null);
+        throw new Error('Your session has expired. Please log in again.');
+      }
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 

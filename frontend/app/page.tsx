@@ -122,6 +122,8 @@ export default function Home() {
     }
   }, []);
 
+  const isLoggingOutRef = useRef(false);
+
   useEffect(() => {
     const user = apiClient.getCurrentUser();
     setCurrentUser(user);
@@ -135,6 +137,10 @@ export default function Home() {
         setActiveTab('dashboard');
       } else {
         setActiveTab('landing');
+        if (!isLoggingOutRef.current) {
+          showToast('Your session has expired. Please log in again.', 'info');
+          setIsAuthOpen(true);
+        }
       }
       loadData(true);
     });
@@ -425,10 +431,14 @@ export default function Home() {
   };
 
   const handleLogout = () => {
+    isLoggingOutRef.current = true;
     apiClient.auth.logout();
     setActiveTab('landing');
     setSelectedPeer(null);
     showToast('Signed out successfully.', 'info');
+    setTimeout(() => {
+      isLoggingOutRef.current = false;
+    }, 500);
   };
 
   const pendingCount = sessions.filter((s) => s.status === 'REQUESTED').length;
